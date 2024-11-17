@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:homework4/theme/colors.dart';
 import 'package:intl/intl.dart';
 
 class ChatWindowPage extends StatefulWidget {
-  final String boardId; // Message Board ID
-  final String boardName; // Message Board Name
+  final String boardId;
+  final String boardName;
 
   const ChatWindowPage({
     super.key,
@@ -34,11 +35,11 @@ class _ChatWindowPageState extends State<ChatWindowPage> {
     Duration difference = now.difference(date);
 
     if (difference.inDays == 0) {
-      return DateFormat('HH:mm').format(date); // Today
+      return DateFormat('HH:mm').format(date);
     } else if (difference.inDays == 1) {
       return "Yesterday ${DateFormat('HH:mm').format(date)}";
     } else {
-      return DateFormat('yyyy-MM-dd HH:mm').format(date); // Older dates
+      return DateFormat('yyyy-MM-dd HH:mm').format(date);
     }
   }
 
@@ -120,45 +121,72 @@ class _ChatWindowPageState extends State<ChatWindowPage> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    return Align(
-                      alignment: message['senderId'] ==
-                              FirebaseAuth.instance.currentUser!.uid
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        margin: const EdgeInsets.symmetric(
-                            vertical: 5, horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: message['senderId'] ==
-                                  FirebaseAuth.instance.currentUser!.uid
-                              ? primary
-                              : thirdColor,
-                          borderRadius: BorderRadius.circular(10),
+                    final isCurrentUser = message['senderId'] ==
+                        FirebaseAuth.instance.currentUser!.uid;
+
+                    return Row(
+                      mainAxisAlignment: isCurrentUser
+                          ? MainAxisAlignment.end
+                          : MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        if (!isCurrentUser)
+                          SvgPicture.asset(
+                            'assets/logo.svg',
+                            height: 50,
+                            width: 50,
+                          ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            margin: const EdgeInsets.symmetric(
+                                vertical: 5, horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: isCurrentUser ? primary : thirdColor,
+                              borderRadius: BorderRadius.only(
+                                topLeft: const Radius.circular(10),
+                                topRight: const Radius.circular(10),
+                                bottomLeft: isCurrentUser
+                                    ? const Radius.circular(10)
+                                    : const Radius.circular(0),
+                                bottomRight: isCurrentUser
+                                    ? const Radius.circular(0)
+                                    : const Radius.circular(10),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  message['senderName'] ?? 'Unknown User',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  message['content'],
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  formatTimestamp(message['createdAt']),
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              message['senderName'] ?? 'Unknown User',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              message['content'],
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              formatTimestamp(message['createdAt']),
-                              style: TextStyle(
-                                  fontSize: 12, color: Colors.grey[200]),
-                            ),
-                          ],
-                        ),
-                      ),
+                        if (isCurrentUser) const SizedBox(width: 8),
+                        if (isCurrentUser)
+                          SvgPicture.asset(
+                            'assets/logo.svg',
+                            height: 50,
+                            width: 50,
+                          ),
+                      ],
                     );
                   },
                 );
