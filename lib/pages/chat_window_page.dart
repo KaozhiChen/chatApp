@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:homework4/theme/colors.dart';
 import 'package:intl/intl.dart';
 
 class ChatWindowPage extends StatefulWidget {
-  final String boardId;
-  final String boardName;
+  final String boardId; // Message Board ID
+  final String boardName; // Message Board Name
 
   const ChatWindowPage({
     super.key,
@@ -26,22 +27,40 @@ class _ChatWindowPageState extends State<ChatWindowPage> {
     super.dispose();
   }
 
-  // send message to Firestore
+  /// Format Timestamp to display friendly time
+  String formatTimestamp(Timestamp timestamp) {
+    DateTime date = timestamp.toDate();
+    DateTime now = DateTime.now();
+    Duration difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      return DateFormat('HH:mm').format(date); // Today
+    } else if (difference.inDays == 1) {
+      return "Yesterday ${DateFormat('HH:mm').format(date)}";
+    } else {
+      return DateFormat('yyyy-MM-dd HH:mm').format(date); // Older dates
+    }
+  }
+
+  /// Send message to Firestore
   Future<void> _sendMessage() async {
     final String content = _messageController.text.trim();
     if (content.isEmpty) return;
 
     final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("You need to login first!")),
-      );
-      return;
-    }
+    if (user == null) return;
 
     try {
-      // save message to Firestore
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      String senderName = 'Anonymous';
+      if (userDoc.exists) {
+        senderName = "${userDoc['firstName']} ${userDoc['lastName']}";
+      }
+
       await FirebaseFirestore.instance
           .collection('messageBoards')
           .doc(widget.boardId)
@@ -49,7 +68,7 @@ class _ChatWindowPageState extends State<ChatWindowPage> {
           .add({
         'content': content,
         'senderId': user.uid,
-        'senderName': user.displayName ?? 'Anonymous',
+        'senderName': senderName,
         'createdAt': Timestamp.now(),
       });
 
@@ -69,7 +88,7 @@ class _ChatWindowPageState extends State<ChatWindowPage> {
       ),
       body: Column(
         children: [
-          // messages list
+          // Messages list
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -101,15 +120,44 @@ class _ChatWindowPageState extends State<ChatWindowPage> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    return ListTile(
-                      title: Text(message['senderName']),
-                      subtitle: Text(message['content']),
-                      trailing: Text(
-                        DateFormat('yyyy-MM-dd HH:mm').format(
-                          (message['createdAt'] as Timestamp).toDate(),
+                    return Align(
+                      alignment: message['senderId'] ==
+                              FirebaseAuth.instance.currentUser!.uid
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 5, horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: message['senderId'] ==
+                                  FirebaseAuth.instance.currentUser!.uid
+                              ? primary
+                              : thirdColor,
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        style:
-                            const TextStyle(fontSize: 12, color: Colors.grey),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              message['senderName'] ?? 'Unknown User',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              message['content'],
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              formatTimestamp(message['createdAt']),
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey[200]),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -118,7 +166,7 @@ class _ChatWindowPageState extends State<ChatWindowPage> {
             ),
           ),
 
-          // input field
+          // Input field
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
