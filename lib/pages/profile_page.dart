@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 
-import 'settings_page.dart';
-
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
