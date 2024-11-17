@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'chat_page.dart';
+import 'message_boards_page.dart';
 import 'profile_page.dart';
 import 'settings_page.dart';
 import '../theme/colors.dart';
@@ -15,7 +15,7 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const ChatPage(),
+    const MessageBoardsPage(),
     const ProfilePage(),
     const SettingsPage(),
   ];

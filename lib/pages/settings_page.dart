@@ -16,7 +16,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   String? _email;
-  String? _role;
+  // String? _role;
   String? _firstName;
   String? _lastName;
 
@@ -42,7 +42,7 @@ class _SettingsPageState extends State<SettingsPage> {
       setState(() {
         _firstName = userDoc['firstName'];
         _lastName = userDoc['lastName'];
-        _role = userDoc['role'];
+        // _role = userDoc['role'];
       });
     }
   }
@@ -66,7 +66,7 @@ class _SettingsPageState extends State<SettingsPage> {
         if (field == 'email') _email = newValue;
         if (field == 'firstName') _firstName = newValue;
         if (field == 'lastName') _lastName = newValue;
-        if (field == 'role') _role = newValue;
+        // if (field == 'role') _role = newValue;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -123,10 +123,8 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(
         title: const Text("Settings"),
       ),
-      body: _email == null ||
-              _firstName == null ||
-              _lastName == null ||
-              _role == null
+      body: _email == null || _firstName == null || _lastName == null
+          // _role == null
           ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16.0),
@@ -147,11 +145,11 @@ class _SettingsPageState extends State<SettingsPage> {
                     value: _lastName!,
                     field: "lastName",
                   ),
-                  _buildInfoCard(
-                    title: "Role",
-                    value: _role!,
-                    field: "role",
-                  ),
+                  // _buildInfoCard(
+                  //   title: "Role",
+                  //   // value: _role!,
+                  //   field: "role",
+                  // ),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () async {
