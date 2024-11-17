@@ -1,5 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:homework4/theme/colors.dart';
+import 'pages/splash_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,15 +15,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Message Board App',
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Message Board App'),
-        ),
-        body: const Center(
-          child: Text('Message Board App!'),
-        ),
-      ),
+      theme: ThemeData(primaryColor: primary),
+      home: const SplashPage(),
     );
   }
 }
