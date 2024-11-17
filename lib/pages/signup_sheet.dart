@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../theme/colors.dart';
+import '../models/user_model.dart';
 
 class SignUpBottomSheet extends StatefulWidget {
   const SignUpBottomSheet({super.key});
@@ -40,14 +41,19 @@ class _SignUpBottomSheetState extends State<SignUpBottomSheet> {
         // Get the created user's UID
         String userId = userCredential.user!.uid;
 
-        // Store user data in Firestore
-        await FirebaseFirestore.instance.collection('users').doc(userId).set({
-          'userId': userId,
-          'firstName': _firstNameController.text.trim(),
-          'lastName': _lastNameController.text.trim(),
-          'role': 'user', // Default role
-          'registrationDate': DateTime.now().toIso8601String(),
-        });
+        // create userModel
+        UserModel newUser = UserModel(
+            userId: userId,
+            firstName: _firstNameController.text.trim(),
+            lastName: _lastNameController.text.trim(),
+            role: 'user',
+            registrationDate: DateTime.now().toIso8601String());
+
+        // save to Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .set(newUser.toMap());
 
         if (!mounted) return;
 
